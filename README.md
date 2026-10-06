@@ -58,6 +58,7 @@ cp -r Phokawin-skills/skills/*/* ~/.claude/skills/
 - **[`scrutinize`](skills/engineering/scrutinize/SKILL.md)** — รีวิว plan / PR / diff จากมุมมองคนนอก ตั้งคำถามว่ามีวิธีง่ายกว่านี้ไหม และไล่ code path จริงไม่ใช่ดูแค่ diff
 - **[`debug-mantra`](skills/engineering/debug-mantra/SKILL.md)** — วินัยดีบัก 4 ขั้น: reproduce, หา fail path, หักล้างสมมติฐาน, บันทึกทุกการทดลอง
 - **[`code-bug-hunter`](skills/engineering/code-bug-hunter/SKILL.md)** — หา syntax/logic error สรุปสาเหตุ และเสนอโค้ดที่แก้แล้วพร้อมคอมเมนต์ เน้น pitfall ของ MongoDB, Google Cloud และ Pandas/NumPy
+- **[`systematic-debugger`](skills/engineering/systematic-debugger/SKILL.md)** — ดีบักครบวงจร 10 phase: นิยามอาการ, repro, ไล่ failure path และ data flow, ตั้ง/หักล้างสมมติฐาน 3–5 ข้อ, ยืนยัน root cause, แก้แบบเล็กที่สุด, ยืนยันด้วย regression test แล้วสรุปเป็น Final Report
 
 ### `skills/productivity/`
 
