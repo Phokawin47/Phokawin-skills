@@ -57,6 +57,7 @@ cp -r Phokawin-skills/skills/*/* ~/.claude/skills/
 - **[`karpathy-guidelines`](skills/engineering/karpathy-guidelines/SKILL.md)** — Think before coding, Simplicity first, Surgical changes, Goal-driven execution
 - **[`scrutinize`](skills/engineering/scrutinize/SKILL.md)** — รีวิว plan / PR / diff จากมุมมองคนนอก ตั้งคำถามว่ามีวิธีง่ายกว่านี้ไหม และไล่ code path จริงไม่ใช่ดูแค่ diff
 - **[`debug-mantra`](skills/engineering/debug-mantra/SKILL.md)** — วินัยดีบัก 4 ขั้น: reproduce, หา fail path, หักล้างสมมติฐาน, บันทึกทุกการทดลอง
+- **[`code-bug-hunter`](skills/engineering/code-bug-hunter/SKILL.md)** — หา syntax/logic error สรุปสาเหตุ และเสนอโค้ดที่แก้แล้วพร้อมคอมเมนต์ เน้น pitfall ของ MongoDB, Google Cloud และ Pandas/NumPy
 
 ### `skills/productivity/`
 
