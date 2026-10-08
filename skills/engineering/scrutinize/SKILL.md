@@ -1,11 +1,31 @@
 ---
 name: scrutinize
-description: Outsider-perspective end-to-end review of a plan, PR, or code change. First questions intent and whether a simpler/more elegant approach would achieve the same goal, then traces the actual code path (not just the diff) to verify the change does what it claims. Output is concise, actionable, and every call carries its rationale. Trigger on /scrutinize and proactively whenever the user asks to review, audit, sanity-check, or get a second opinion on a plan, PR, diff, design doc, or proposed code change.
+description: Reviews a plan, PR or code change from an outsider's view - first questions the intent and whether a simpler approach reaches the same goal, then traces the real code path (not just the diff) to verify the change does what it claims. Output is concise, actionable, with a rationale per finding. Use on /scrutinize and proactively whenever the user asks to review, audit, sanity-check or get a second opinion on a plan, PR, diff, design doc, report draft or proposed change; also Thai phrasings such as "รีวิวให้หน่อย", "ช่วยตรวจ PR", "ดูแผนนี้หน่อย", "แผนนี้โอเคไหม", "มีวิธีที่ง่ายกว่านี้ไหม", "ขอ second opinion".
 ---
 
 # Scrutinize
 
 Stand outside the change and ask whether it should exist at all, then verify it actually does what it claims end-to-end.
+
+**Freedom level:** medium — the four steps and the report shape are fixed; what to trace and which risks to probe is your judgment.
+
+## Report language
+
+Applies to the whole review.
+
+1. If the user already named a language this session, or CLAUDE.md / memory records one, use it without asking.
+2. Otherwise ask once, before the first message: "จะให้รายงานเป็นภาษาอะไร — ไทย หรือ English?" (suggest Thai) and wait. If the answer is vague, use Thai. Do not ask again this session, whichever skill runs next.
+3. Keep code, identifiers, commands, `file:line` references and quoted error strings in their original language.
+
+## Checklist
+
+```
+- [ ] 1 Intent stated in one sentence; simpler alternative considered   ← cannot state it: say the artifact is underspecified, stop
+- [ ] 2 Real code path traced end-to-end (including unchanged code around the diff)
+- [ ] 3 Each claim checked: path walked, breaking inputs listed, silent changes listed, tests checked
+- [ ] 4 Findings written with file:line, consequence, evidence, minimal change; verdict last
+- [ ] 5 Re-read your own findings: any without a cited trace step?   ← yes: go back to 2 or drop the finding
+```
 
 ## Operating stance
 
@@ -43,6 +63,7 @@ For each claim the change/plan makes, answer:
 - **What inputs / states would break it?** Edge cases, concurrent callers, error paths, partial failures, retries, empty/null/unicode/huge inputs, ordering assumptions.
 - **What does it silently change?** Performance, error semantics, observability, contract for other callers, on-disk / on-wire format.
 - **How is it tested?** Do the tests actually exercise the traced path, or do they pass while skipping it (mocks that hide the bug, asserts on intermediate state, happy path only)?
+- **Stack-specific traps** — check the ones that apply: pandas index alignment / merge row counts / silent dtype changes; unseeded randomness or train-eval leakage in ML code; missing `await`, timezone and null handling at API boundaries; PowerShell 5.1 compatibility (`&&`, `??`), file encoding of Thai text, `$LASTEXITCODE` ignored; LaTeX engine/bibliography/stale `.aux` assumptions. Details in the `debug-mantra` skill's `references/stack-pitfalls.md` when available.
 
 ### 4. Report
 
