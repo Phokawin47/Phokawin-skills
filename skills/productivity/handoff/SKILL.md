@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: Compact current conversation state into a structured handoff document saved in the OS temp directory for seamless agent-to-agent session resumption. Trigger on /handoff.
+description: Compacts the current conversation state into a structured handoff document saved in the OS temp directory, so a fresh agent session can resume the work. Invoked by the user with /handoff, or in Thai "ส่งต่องาน", "สรุปงานให้เซสชันหน้า".
 argument-hint: "What will the next session be used for?"
 disable-model-invocation: true
 ---
@@ -8,6 +8,16 @@ disable-model-invocation: true
 # Handoff
 
 Compact the current conversation context into a structured handoff document so that a fresh agent in a new session can seamlessly continue the work without token bloat or context degradation.
+
+**Freedom level:** low for the save location, redaction and template; medium for what counts as essential context.
+
+## Report language
+
+Applies to the handoff document and to what you tell the user.
+
+1. If the user already named a language this session, or CLAUDE.md / memory records one, use it without asking.
+2. Otherwise ask once, before the first message: "จะให้รายงานเป็นภาษาอะไร — ไทย หรือ English?" (suggest Thai) and wait. If the answer is vague, use Thai. Do not ask again this session, whichever skill runs next.
+3. Keep code, identifiers, commands and file paths in their original language. Record the chosen report language in the handoff so the next session does not ask again.
 
 ---
 
@@ -56,7 +66,13 @@ Specify which skills the receiving agent should invoke to continue smoothly:
 - `karpathy-guidelines` — for surgical and disciplined implementation
 - `scrutinize` — for rigorous review before merging
 - `debug-mantra` — if resolving active failures or regressions
+- `refactor` / `git-commit` — if the next step restructures code or commits it
+
+## 5. Preferences
+- **Report language:** <Thai | English>
 ```
+
+Only list skills the receiving agent actually has installed or that the repo documents.
 
 ---
 
