@@ -1,6 +1,6 @@
 ---
 name: spec-to-tasks
-description: Synthesize conversation and planning into a Technical Specification and break it down into an actionable Tracer-Bullet Tasks Checklist with dependencies. Trigger on /spec-to-tasks.
+description: Synthesizes the conversation and settled requirements into a Technical Specification and breaks it into a Tracer-Bullet task checklist with dependencies. Invoked by the user with /spec-to-tasks, or in Thai "แตกเป็นงาน", "ทำ spec แล้วแตก task".
 disable-model-invocation: true
 ---
 
@@ -10,7 +10,17 @@ Bridge the gap between ideation/grilling and hands-on coding. This skill takes t
 1. **A Technical Specification:** Clear problem statement, proposed architecture seams, explicit boundaries (In-Scope vs Out-of-Scope), and success criteria.
 2. **A Tracer-Bullet Tasks Checklist:** Sequential vertical slices with explicit dependency blocking edges, ready for surgical execution.
 
-No additional interview needed; synthesize what has already been decided.
+No additional interview needed; synthesize what has already been decided. If a decision the spec depends on is genuinely unsettled, stop and suggest `/grill-me` instead of guessing.
+
+**Freedom level:** low for the two templates (use them as written); medium for how the work is sliced.
+
+## Report language
+
+Applies to the spec, the checklist and everything said to the user.
+
+1. If the user already named a language this session, or CLAUDE.md / memory records one, use it without asking.
+2. Otherwise ask once, before the first message: "จะให้รายงานเป็นภาษาอะไร — ไทย หรือ English?" (suggest Thai) and wait. If the answer is vague, use Thai. Do not ask again this session, whichever skill runs next.
+3. Keep code, identifiers, commands and file paths in their original language; keep the `CONTEXT.md` terms exactly as the glossary defines them.
 
 ---
 
@@ -87,4 +97,9 @@ Decompose the specification into **Tracer-Bullet Tasks**.
 
 1. **Review Context:** Read current conversation history, `CONTEXT.md`, and inspect target code files before drafting.
 2. **Draft Spec & Checklist:** Generate the complete spec and task breakdown adhering to the templates above.
-3. **Validate with User:** Present the breakdown and confirm alignment before proceeding to implementation under `karpathy-guidelines`.
+3. **Check the draft** — go back to step 2 if any check fails:
+   - every task has a runnable verification command or a concrete observable check
+   - every task is a vertical slice (or part of an explicit Expand–Contract)
+   - the "Blocked by" edges contain no cycle, and Task 1 is startable now
+   - nothing in the checklist is listed Out-of-Scope in the spec
+4. **Validate with User:** Present the breakdown and confirm alignment before implementation. Implement under `karpathy-guidelines` if it is installed.
