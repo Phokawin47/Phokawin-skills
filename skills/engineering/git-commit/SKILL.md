@@ -20,6 +20,8 @@ Turn the actual diff into a Conventional Commit. Never describe changes you did 
 
 **Requires:** `git`. The staging guard in `hooks/guard.js` needs `node` on PATH; if `node` is missing the guard does nothing, so the rules below still apply by hand.
 
+**Contents:** Report language · Checklist · 1–2 Read and split · 3–4 Stage by path · 5 Message · Safety
+
 ## Report language
 
 Applies to what you tell the user (summary, questions). The commit message itself stays English and Conventional, unless the user asks for another language.
