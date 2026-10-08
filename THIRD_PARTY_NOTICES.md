@@ -1,15 +1,20 @@
 # Third-Party Notices
 
-All skills except `refactor` were copied unchanged from
+All skills listed below except `refactor` were originally copied from
 [Rachapol03/Rachapol-skills](https://github.com/Rachapol03/Rachapol-skills) at commit `ed580ba`,
 which in turn collected them from the upstream projects below. Each is distributed under the MIT License.
+
+They have since been **modified** in this repository (Thai trigger phrases, a report-language rule,
+go-back checklists, stack-specific additions; `grill-with-docs` was merged into `grill-me`, and
+`debug-mantra` additionally absorbs the removed `systematic-debugger` and `code-bug-hunter`).
+The original copyright notices are retained below.
 
 | Skill | Upstream | Copyright |
 | :--- | :--- | :--- |
 | `caveman` | [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) (`skills/` is MIT per its LICENSING.md) | Copyright (c) 2026 Julius Brussee |
 | `find-skills` | [vercel-labs/skills](https://github.com/vercel-labs/skills) | Copyright (c) 2026 Vercel, Inc. |
 | `git-commit` | [github/awesome-copilot](https://github.com/github/awesome-copilot) | Copyright GitHub, Inc. |
-| `grill-me`, `grill-with-docs`, `handoff` | [mattpocock/skills](https://github.com/mattpocock/skills) | Copyright (c) 2026 Matt Pocock |
+| `grill-me` (includes former `grill-with-docs`), `handoff` | [mattpocock/skills](https://github.com/mattpocock/skills) | Copyright (c) 2026 Matt Pocock |
 | `karpathy-guidelines` | [multica-ai/andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills) (MIT declared in its README; no LICENSE file) | Multica AI contributors |
 | `debug-mantra`, `spec-to-tasks`, `scrutinize`, `post-mortem` | [Rachapol03/Rachapol-skills](https://github.com/Rachapol03/Rachapol-skills) (MIT declared in its README; no LICENSE file) | Rachapol Sakulpan |
 
