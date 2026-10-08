@@ -1,56 +1,69 @@
 ---
 name: grill-me
-description: Relentless Socratic interview to sharpen a plan, decision, or architecture idea in-chat without modifying or creating files. Trigger on /grill-me or when you need to stress-test your thinking before coding.
+description: Interviews the user relentlessly, Socratic style, to stress-test a plan, decision, requirement or architecture idea before any code is written. Chat mode (default) keeps everything in the conversation and writes no files; docs mode (`/grill-me docs`) also maintains a CONTEXT.md glossary and records hard-to-reverse decisions as ADRs in docs/adr/. Invoked by the user with /grill-me, or in Thai "ซักฉันหน่อย".
 disable-model-invocation: true
+argument-hint: "[docs] <the plan or idea to stress-test>"
 ---
 
 # Grill Me
 
-A relentless Socratic interview to stress-test ideas, plans, decisions, or system designs purely within the conversation. It operates **statelessly**—sharpening your thinking without creating or editing files in the repository.
+Interview the user until the plan has no untested assumptions left. The value is in the questions the user had not asked themselves, so do not accept the first answer when it hides a trade-off.
 
----
+## Modes
 
-## Operating Principles
+| Mode | Trigger | Writes files? |
+|------|---------|---------------|
+| **chat** (default) | `/grill-me` | No. The synthesis stays in the conversation. |
+| **docs** | `/grill-me docs`, or the user asks to record terms/decisions in the repo | Yes — `CONTEXT.md` and `docs/adr/` only. |
 
-1. **Facts are the agent's job, decisions are the user's:**
-   If a question relies on facts already present in the workspace, environment, or configuration, inspect them directly (or dispatch a subagent). Never ask the user for information you can discover yourself. Only interview the user on decisions, intents, constraints, and preferences.
+If the mode is unclear and the project is a real codebase, ask which one before the first round.
 
-2. **Design Tree & Frontier:**
-   Model the problem as a branching design tree. Every decision exposes new subordinate choices. Work through the tree in **rounds**. The **frontier** consists of all decisions whose prerequisites have been settled.
-   - Present all frontier questions for the current round at once.
-   - For every question, propose a clear recommended choice with rationales.
-   - Await the user's answers before generating the next round.
+## Report language
 
-3. **Stateless in-chat focus:**
-   Do not generate `CONTEXT.md` or ADR files. Keep the entire synthesis within the conversation. (If you want to produce domain glossary and architectural decision records directly in the codebase, use `/grill-with-docs` instead.)
+Applies to every question, recommendation and summary in this skill.
 
----
+1. If the user already named a language this session, or CLAUDE.md / memory records one, use it without asking.
+2. Otherwise ask once, before the first message: "จะให้รายงานเป็นภาษาอะไร — ไทย หรือ English?" (suggest Thai) and wait. If the answer is vague, use Thai. Do not ask again this session, whichever skill runs next.
+3. Keep code, identifiers, commands, file paths and domain terms in their original language. In docs mode, write `CONTEXT.md` and ADRs in the report language but keep the term the code uses as the canonical term.
 
-## Round Format
+**Freedom level:** high for the questions (judge what is worth asking); low for the files in docs mode (follow the two format references exactly).
 
-Structure each question round with crisp, scannable formatting:
+## Operating principles
+
+1. **Facts are your job, decisions are the user's.** If the answer is in the workspace — files, config, dependencies, code paths, git history — read it. Interview only on intent, requirements, constraints, trade-offs and preferences.
+2. **Design tree, frontier, rounds.** Every decision exposes sub-decisions. The *frontier* is the set of questions whose prerequisites are settled. Ask the whole frontier in one round, then wait. After the answers, recompute the frontier.
+3. **Always recommend.** Give a recommended answer with the reason for each question, so the user can reply "ok" when they agree.
+4. **Challenge, don't transcribe.** If an answer contradicts an earlier one, the glossary, or the code you read, say so immediately and ask which is right.
+
+## Round format
 
 ```markdown
-❓ **Q1** - **<Question Title>**: <Question description, context, and distinct options>
-
-➡️ **Recommendation**: <Your recommended answer and rationale>
+❓ **Q1 — <title>**: <context and the distinct options>
+➡️ **Recommendation**: <choice and why>
 
 ---
 
-❓ **Q2** - **<Question Title>**: <Question description, context, and distinct options>
-
-➡️ **Recommendation**: <Your recommended answer and rationale>
+❓ **Q2 — <title>**: ...
+➡️ **Recommendation**: ...
 ```
 
----
+## Workflow
 
-## Workflow Steps
+1. **Orient.** Parse the subject. In docs mode also read `CONTEXT.md` (or `CONTEXT-MAP.md`), `docs/adr/` and the relevant code.
+2. **Compute the first frontier** and present it.
+3. **Loop.** Process the answers. In docs mode, capture immediately (below) before the next round — do not batch. Recompute the frontier.
+4. **Wrap up** when the frontier is empty and no critical assumption is untested: summarize the refined plan, the decisions taken, and what stays open. In docs mode, list the files touched.
 
-1. **Analyze Subject:** Parse the user's stated plan, idea, or challenge. Inspect relevant environment files if needed to understand the background.
-2. **Compute Initial Frontier:** Formulate the initial set of pivotal questions and recommendations.
-3. **Iterate Rounds:**
-   - Present the frontier questions.
-   - Process user choices.
-   - Unblock downstream questions and recompute the frontier.
-4. **Wrap Up:**
-   When the frontier is empty and no critical assumptions remain untested, present a cohesive summary of the refined plan.
+## Docs mode
+
+### `CONTEXT.md` — the domain glossary
+
+- Challenge fuzzy or overloaded words (*Customer* vs *User* vs *Account*) and propose one canonical term.
+- When the user's wording contradicts the glossary, call it out: "The glossary defines X as A, but you seem to mean B. Which is it?"
+- Keep it at the repo root (or per context via `CONTEXT-MAP.md`). Glossary only — no implementation details, specs or task lists. Format rules: [references/CONTEXT-FORMAT.md](references/CONTEXT-FORMAT.md).
+
+### `docs/adr/` — architectural decision records
+
+Offer an ADR only when **all three** hold: hard to reverse, surprising without context, a real trade-off with genuine alternatives. Number sequentially (`docs/adr/0001-use-postgres.md`), 1–3 sentences: context, decision, why. Create the directory lazily. Format: [references/ADR-FORMAT.md](references/ADR-FORMAT.md).
+
+Do not touch code in either mode. When the interview ends and the user wants tasks, hand off to `spec-to-tasks`.

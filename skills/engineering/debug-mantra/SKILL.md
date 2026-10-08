@@ -1,13 +1,37 @@
 ---
 name: debug-mantra
-description: Four-mantra debugging discipline — reproduce, trace the fail path, falsify the hypothesis, cross-reference every breadcrumb. Recite the mantra block verbatim at the start of any debugging session, then apply the four steps in order before proposing any fix. Trigger on /debug-mantra and proactively whenever debugging starts — user reports a bug, says something is broken/throwing/failing, asks to debug/diagnose/investigate an issue, or pastes a stack trace or error log.
+description: Guides evidence-first debugging - reproduce, trace the fail path, falsify hypotheses, log every run in a ledger, fix only the proven root cause, then verify with a regression test. Use proactively whenever debugging starts - the user says something is broken, failing, crashing, throwing, flaky or giving wrong results; asks to debug, diagnose, investigate, find the root cause, review or check their code for bugs; or pastes a stack trace, error log or failing test. Also fires on Thai phrasings such as "บั๊ก", "พัง", "error", "รันไม่ผ่าน", "ผลลัพธ์ผิด", "ทำไมมันถึง...", "ช่วยดูโค้ดหน่อย", "หาสาเหตุให้หน่อย", "แก้ error ให้". Trigger on /debug-mantra.
 ---
 
 # Debug Mantra
 
-Four-step discipline for any debug session. Recite verbatim, then apply in order.
+One discipline for every debug session: no fix before a reproduction, no root cause before the disproof was tried, no "fixed" before the original failure was shown to pass.
 
-## Recite this — verbatim, as the first thing in your first response
+The failure mode this prevents: patching the line where the error surfaced, watching the symptom disappear, and declaring victory while the real cause is still live (a swallowed exception, a fallback value, a retry, a null check).
+
+**Freedom level:** low for the order of steps and the stop conditions (they are gates); high for how to investigate inside each step.
+
+Copy this checklist into the first reply and tick items as they are done. A failed check sends you back, never forward.
+
+```
+- [ ] 1 Repro exists (failing signal in ≤5 s)       ← none: stop, ask the user
+- [ ] 2 Fail path found (first divergence located)   ← not found: back to 1, raise repro rate or add probes
+- [ ] 3 3–5 hypotheses ranked, disproof run first    ← all dead: back to 2, widen the knobs
+- [ ] 4 Ledger consistent with the surviving cause   ← a run contradicts it: back to 3
+- [ ] 5 Root cause sentence written, confidence set
+- [ ] 6 Smallest fix + regression test (fails before, passes after)
+- [ ] 7 Verified: repro, regression and related tests pass    ← any red: back to 3
+```
+
+## Report language
+
+Applies to everything said to the user in this skill — reports, summaries, questions, status notes.
+
+1. If the user already named a language this session, or CLAUDE.md / memory records one, use it without asking.
+2. Otherwise ask once, before the first message to the user: "จะให้รายงานเป็นภาษาอะไร — ไทย หรือ English?" (suggest Thai) and wait. If the answer is vague, use Thai. Do not ask again this session, whichever skill runs next.
+3. Keep code, identifiers, commands, error strings, file paths and commit messages in their original language. Translate the prose around them, never them.
+
+## Recite this — verbatim, in English, first thing after the language is settled
 
 > **Mantra:**
 > 1. **First is reproducibility.** Can the issue be reproduced reliably?
@@ -15,61 +39,82 @@ Four-step discipline for any debug session. Recite verbatim, then apply in order
 > 3. **Question your hypothesis.** What would disprove it?
 > 4. **Every run is a breadcrumb.** Cross-reference all of them.
 
-Then begin work.
+Recite once per session. If the user says "skip the mantra" (or "ไม่ต้องท่อง"), skip the recital but still follow the steps.
 
 ---
 
 ## 1. Reproduce reliably
 
-Build a runnable repro before anything else.
+Build a runnable repro before anything else. Capture the symptom first: expected vs actual behavior, exact error text, trigger input, environment, frequency (deterministic / intermittent / environment-specific).
 
-- **Reliable repro** → capture the exact steps, inputs, and environment as a runnable artifact: failing test, curl script, CLI invocation, replay harness.
-- **Flaky repro** → the bug is not yet debuggable. Raise the rate first: loop the trigger, parallelise, add stress, narrow timing windows, inject sleeps. 50% flake is debuggable; 1% is not.
-- **No repro at all** → stop. Say so explicitly. Ask the user for env access, captured artifacts (HAR, log dump, core), or permission to instrument. Do **not** proceed to hypothesise.
+- **Reliable repro** → save exact steps, inputs and environment as a runnable artifact: failing test, script, curl, CLI invocation. Target a 1–5 s deterministic pass/fail signal: pin time, seed the RNG, freeze the network, isolate the filesystem.
+- **Flaky repro** → not yet debuggable. Raise the rate first: loop the trigger, add stress, narrow timing windows, inject sleeps. 50% flake is debuggable; 1% is not.
+- **No repro** → stop. Print `DEBUG STATUS: NOT YET REPRODUCIBLE`, name what is missing (env access, logs, HAR, dump, permission to instrument) and ask. Do not hypothesise and do not claim a cause.
 
-Target: a fast (1–5 s), deterministic pass/fail signal. Pin time, seed the RNG, freeze network, isolate filesystem.
+**Snippet-only mode.** When the user pasted code and nothing can be run, do a static review (syntax, logic, anti-patterns, the stack pitfalls below), but label every finding *unverified* and say what run would confirm it. Keep the user's intent — do not rewrite logic that only needs a one-line fix.
 
 ## 2. Know the fail path
 
-Once reproducible, find *where* the code breaks and *what stops it from breaking*. The differential narrows the search. Try in this order — escalate only when the prior tactic fails.
+Find where behavior first diverges from expectation — that point, not the crash site, is where the bug lives. Escalate only when the previous tactic fails:
 
-1. **Attach a debugger.** If the env supports it, attach and step to the failure site. One breakpoint beats ten logs. Do this **before** turning any knobs.
-2. **Source trace + knob enumeration.** If no debugger (or it can't reach the bug), trace the code path end-to-end and list every knob that can influence the outcome:
-   - config flags, env vars, feature toggles
-   - branch conditions, input shape
-   - timing, concurrency, build options
-   Each knob is a candidate axis to flip in the differential. Flip one at a time.
-3. **In-code instrumentation.** If outside knobs can't move the failure, go inside: `printf` / log statements at the suspected fail site, dump the relevant internal state. Tag every probe with a unique prefix (e.g. `[DBG-a4f2]`) so cleanup is a single grep. Let the trace show where reality diverges from your model.
+1. **Debugger.** If available, step to the failure site. One breakpoint beats ten logs.
+2. **Source trace + knob enumeration.** Trace entry → boundaries → failure, checking input, output, state mutation and branch conditions at each. List every knob that can move the outcome (config, env vars, flags, input shape, timing, concurrency, build options) and flip them one at a time.
+3. **Instrumentation.** Log or print at the suspected site. Tag every probe with a unique prefix such as `[DBG-a4f2]` so cleanup is one grep. Remove probes before finishing unless they add lasting observability.
+
+For wrong values, walk backwards: where was it created, transformed, validated, and where did it first become wrong? Check type, nullability, shape, units, encoding, timezone, ordering, defaults, serialization. Do not patch the consumer when the producer emits invalid state.
+
+Read `references/stack-pitfalls.md` when the code involves Python/data/ML, web/backend, LaTeX, or Windows/PowerShell — it lists the failures specific to those stacks.
 
 ## 3. Falsify the hypothesis
 
-When a candidate root cause surfaces, scrutinise it **before** testing it.
-
-- Does it actually explain the symptom end-to-end? Walk it through.
-- What is the simplest **proof**? What is the cleanest **disproof**?
-- Run the **disproof first**. If the hypothesis survives, it's real. If it dies, you saved yourself from chasing a phantom.
-- Generate 3–5 ranked hypotheses, not one. Single-hypothesis thinking anchors on the first plausible idea.
+Write 3–5 ranked hypotheses (H1 most likely). For each: evidence for, evidence against, the experiment that would prove it, and the one that would **disprove** it. Run the disproof first. A single hypothesis anchors on the first plausible idea.
 
 ## 4. Every run is a breadcrumb
 
-Maintain a running **ledger** of every experiment in this session. Each entry: what changed, what happened, what it ruled in or out.
+Keep a ledger and update it after every run:
 
-- When a new hypothesis surfaces, walk the ledger. Does it hold for **every** prior observation, not just the most recent?
-- If any past run contradicts it, the hypothesis is wrong or incomplete — refine or discard.
-- When in doubt, design the **single experiment** whose outcome makes it certain. Run that next, instead of churning on adjacent runs.
-- Update the ledger after every run. It is your memory across the session.
+| Run | Changed | Result | Rules in / out |
+|-----|---------|--------|----------------|
+| E1 | Disabled cache | Still fails | Cache unlikely |
 
----
+Change one variable per run. A new hypothesis must hold against **every** earlier row, not just the latest. When unsure, design the single experiment whose outcome settles it. Do not repeat a run without saying what new information it gives.
+
+## 5. Establish the root cause
+
+A root cause explains every observation and passes this test: *if it were removed, would the bug stop?* State it as:
+
+> Because [condition], [component] produces [incorrect state], which flows through [path], causing [observed failure].
+
+Example: *Because `discount_code` is nullable in the DB, `load_user()` returns `None`; `calculate_discount()` assumes a string and calls `.lower()`, so the checkout request fails with `AttributeError`.*
+
+Give a confidence: CONFIRMED (an experiment directly validated the mechanism) / HIGH / MEDIUM / LOW. Never claim CONFIRMED otherwise.
+
+## 6. Fix and verify
+
+- Enforce the invariant as close to the source as possible: source of the invalid state → boundary validation → domain invariant → consumer guard (last resort).
+- Smallest change that fixes the proven cause. No unrelated refactoring. No broad `try/except`, fallback value, retry, sleep or null check unless it addresses the actual cause.
+- Add a regression test that fails before the fix and passes after. Capture a baseline of the surrounding tests first.
+- Verified means: the original repro passes, the regression test passes, related tests pass, no new warnings, valid inputs behave as before. If only the symptom vanished, print `DEBUG STATUS: FIX UNVERIFIED` and do not declare success.
+
+## Final report
+
+```
+## Problem        what was observed (and expected)
+## Reproduction   command / input / signal
+## Failure path   where behavior first diverged
+## Root cause     the mechanism sentence + confidence
+## Evidence       the ledger rows that prove it
+## Fix            what changed and why there
+## Files changed  path — purpose
+## Verification   commands run and their results
+## Regression risk
+```
+
+After a validated fix, offer to write it up with `post-mortem` — the ledger and failing test feed directly into it.
 
 ## Operating rules
 
-- Recite the mantra block **once** per debug session, in your first response. Do not re-recite mid-session.
-- Recite **verbatim**. Never paraphrase, shorten, or skip lines of the recital.
-- If the user says "skip the mantra" → skip the recital but still apply the four steps silently.
-- Apply the four steps **in order**:
-  - Do not propose a fix before #1 is satisfied (reliable repro exists).
-  - Do not start testing hypotheses before #2 has narrowed the fail path.
-  - Do not commit to a hypothesis before #3 has tried to disprove it.
-  - Do not declare a hypothesis correct until #4 confirms it against every prior breadcrumb.
-- If you catch yourself proposing a fix without a reliable repro, stop and return to step 1.
-- The mantra is a constraint **you** carry through the session — not advice to deliver back to the user.
+- Order matters: no fix before #1, no hypothesis testing before #2 narrows the path, no commitment before #3 tried to disprove it, no "correct" before #4 checks it against every run.
+- Caught proposing a fix without a repro → stop and return to step 1.
+- Never say "tests pass" or "fixed" without having run the command and read its output; say what was not run.
+- The mantra is a constraint you carry, not advice to hand back to the user.

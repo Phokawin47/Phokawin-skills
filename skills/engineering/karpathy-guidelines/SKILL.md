@@ -1,6 +1,6 @@
 ---
 name: karpathy-guidelines
-description: Behavioral guidelines to reduce common LLM coding mistakes. Use when writing, reviewing, or refactoring code to avoid overcomplication, make surgical changes, surface assumptions, and define verifiable success criteria.
+description: Sets behavioral guidelines that reduce common LLM coding mistakes - think before coding, keep it simple, make surgical changes, define verifiable success criteria. Use when writing, editing, reviewing or refactoring code; also Thai phrasings such as "เขียนโค้ด", "แก้โค้ดให้หน่อย", "เพิ่มฟีเจอร์", "อย่าแก้เกินที่สั่ง", "ทำให้ง่ายที่สุด".
 license: MIT
 ---
 
@@ -9,6 +9,16 @@ license: MIT
 Behavioral guidelines to reduce common LLM coding mistakes, derived from [Andrej Karpathy's observations](https://x.com/karpathy/status/2015883857489522876) on LLM coding pitfalls.
 
 **Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
+
+**Freedom level:** high — these are principles, not steps.
+
+## Report language
+
+Applies to the assumptions, questions and plans you state to the user.
+
+1. If the user already named a language this session, or CLAUDE.md / memory records one, use it without asking.
+2. Otherwise ask once, before the first message: "จะให้รายงานเป็นภาษาอะไร — ไทย หรือ English?" (suggest Thai) and wait. If the answer is vague, use Thai. Do not ask again this session, whichever skill runs next.
+3. Keep code, identifiers, commands and file paths in their original language.
 
 ## 1. Think Before Coding
 

@@ -1,11 +1,24 @@
 ---
 name: find-skills
-description: Helps users discover and install agent skills when they ask questions like "how do I do X", "find a skill for X", "is there a skill that can...", or express interest in extending capabilities. This skill should be used when the user is looking for functionality that might exist as an installable skill.
+description: Discovers and installs agent skills from the open skills ecosystem (skills.sh). Use when the user asks "how do I do X", "find a skill for X", "is there a skill that can...", or wants to extend the agent's capabilities; also Thai phrasings such as "มีสกิลสำหรับ ... ไหม", "หาสกิลให้หน่อย", "ติดตั้งสกิล", "อยากให้ agent ทำ ... ได้".
 ---
 
 # Find Skills
 
 This skill helps you discover and install skills from the open agent skills ecosystem.
+
+**Freedom level:** medium — follow the steps, adapt the search terms.
+
+**Requires:** Node.js (`npx`) and network access. Check the owner's own skills first (`npx skills add Phokawin47/Phokawin-skills --list`) before searching elsewhere.
+
+**Contents:** Report language · When to Use · What is the Skills CLI · How to Help Users Find Skills (Steps 1–6) · Common Skill Categories · Tips · When No Skills Are Found
+
+## Report language
+
+Applies to what you tell the user. Commands, skill names and URLs stay as they are.
+
+1. If the user already named a language this session, or CLAUDE.md / memory records one, use it without asking.
+2. Otherwise ask once, before the first message: "จะให้รายงานเป็นภาษาอะไร — ไทย หรือ English?" (suggest Thai) and wait. If the answer is vague, use Thai. Do not ask again this session, whichever skill runs next.
 
 ## When to Use This Skill
 
@@ -94,7 +107,7 @@ Learn more: https://skills.sh/vercel-labs/agent-skills/react-best-practices
 
 ### Step 6: Offer to Install
 
-If the user wants to proceed, you can install the skill for them:
+Installing runs third-party instructions inside the agent, so install only after the user says yes to that specific skill. If the user wants to proceed, you can install the skill for them:
 
 ```bash
 npx skills add <owner/repo@skill> -g -y

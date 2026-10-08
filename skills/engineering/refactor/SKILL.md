@@ -1,6 +1,13 @@
 ---
 name: refactor
-description: Restructure existing code without changing its behavior — extracting functions, splitting oversized files, flattening nested conditionals, removing duplication, untangling a module that has become hard to change. Use this whenever the user asks to refactor, clean up, tidy, simplify, restructure, "make this readable", "break this file apart", or reduce complexity, and also when they ask for a behavior change in code that is too tangled to change safely (refactor first, then change). Do not use it for adding features, fixing bugs, or optimizing performance — those change behavior and belong in a separate pass.
+description: Restructures existing code without changing its behavior - extracting functions, splitting oversized files, flattening nested conditionals, removing duplication, untangling a module that has become hard to change. Use whenever the user asks to refactor, clean up, tidy, simplify, restructure, "make this readable", "break this file apart", or reduce complexity, or asks for a behavior change in code too tangled to change safely (refactor first, then change). Also fires on Thai phrasings such as "จัดโครงสร้างโค้ดใหม่", "ทำให้อ่านง่ายขึ้น", "โค้ดรก ช่วยเก็บหน่อย", "แยกไฟล์ให้หน่อย", "ลดความซ้ำซ้อนของโค้ด". Not for adding features, fixing bugs or optimizing performance - those change behavior and belong in a separate pass.
+hooks:
+  PreToolUse:
+    - matcher: "Bash|PowerShell"
+      hooks:
+        - type: command
+          command: node
+          args: ["${CLAUDE_SKILL_DIR}/hooks/guard.js"]
 ---
 
 # Refactor
@@ -8,6 +15,37 @@ description: Restructure existing code without changing its behavior — extract
 Refactoring means changing the shape of code while keeping its observable behavior identical. The hard part is not knowing the catalog of refactorings — it is proving that behavior did not change. Everything below exists to serve that proof.
 
 The failure mode this skill prevents: a large, plausible-looking diff that silently changes an edge case, delivered with a confident claim that nothing broke. A refactor that cannot be verified is not a refactor, it is a rewrite with extra steps.
+
+**Freedom level:** low for the gates, verification and prohibitions (they are fixed); medium for choosing and ordering refactorings (judgment guided by the risk order).
+
+**Requires:** `git`, plus whatever the target project uses to test (see [Language-specific verification](#language-specific-verification)). The staging guard in `hooks/guard.js` needs `node`; without it, the no-`git add -A` rule applies by hand.
+
+## Contents
+
+- [Report language](#report-language) · [Core rules](#core-rules) · [Checklist](#checklist)
+- [Phase 0 — Safety net](#phase-0--safety-net) · [Phase 1 — Survey and propose](#phase-1--survey-and-propose) · [Phase 2 — Execute](#phase-2--execute) · [Phase 3 — Report](#phase-3--report)
+- [What counts as refactoring](#what-counts-as-refactoring-here) · [When not to refactor](#when-not-to-refactor) · [Judgment on patterns](#judgment-on-patterns) · [Prohibitions](#prohibitions) · [Language-specific verification](#language-specific-verification)
+
+## Report language
+
+Applies to what you tell the user — gate reports, proposals, the final report. Commit messages stay English.
+
+1. If the user already named a language this session, or CLAUDE.md / memory records one, use it without asking.
+2. Otherwise ask once, before the first message: "จะให้รายงานเป็นภาษาอะไร — ไทย หรือ English?" (suggest Thai) and wait. If the answer is vague, use Thai. Do not ask again this session, whichever skill runs next.
+3. Keep code, identifiers, commands and file paths in their original language.
+
+## Checklist
+
+Copy into the reply and tick as you go.
+
+```
+- [ ] Phase 0: verification commands found, baseline run saved, tree clean   ← GATE 0 fails: report, offer (a)/(b)/(c), stop
+- [ ] Phase 1: proposal sorted mechanical → invasive, within 5 files / 400 lines   ← GATE 1: wait for the user's pick
+- [ ] Phase 2 (per item): change → verify → commit
+      verification red → revert the change, back to Phase 1 for that item (do not patch forward)
+- [ ] GATE 2: stop, no extra "while I was here" edits
+- [ ] Phase 3: report with real command output and named deferred items
+```
 
 ## Core rules
 
@@ -160,5 +198,17 @@ Use the project's own commands when they exist; fall back to these only to check
 | Go | `go test ./...` | (compiler) | `go vet ./...` |
 | Rust | `cargo test` | `cargo check` | `cargo clippy` |
 | Java | `mvn test` / `gradle test` | (compiler) | — |
+| PowerShell | `Invoke-Pester` | — | `Invoke-ScriptAnalyzer -Path .` |
+| LaTeX | build with the project script (`latexmk -pdf` / `build.ps1`), zero new errors/warnings in the `.log` | — | `chktex` |
 
 For Python specifically, `git diff` on `.py` files hides nothing but indentation changes can alter scope silently — read the diff, do not just trust the test run.
+
+**Code with no tests — scripts, notebooks, data/ML pipelines, PowerShell, LaTeX.** These usually fail Gate 0, so this is where option (a) applies. Pin behavior with a golden output instead of unit tests:
+
+- Data / ML script: fix the seed, run on a small fixed input, save the output (CSV/parquet/metrics) before editing, then compare byte-for-byte or with `pandas.testing.assert_frame_equal` / `numpy.testing.assert_allclose` after each step. Notebooks: restart and run all before and after, compare the cell outputs that matter.
+- PowerShell / CLI script: run with representative arguments, capture stdout, stderr and exit code (`$LASTEXITCODE`) before and after.
+- LaTeX: build before and after, then compare the extracted text (`pdftotext`) and the page count; a layout-only refactor of macros must produce identical text.
+
+Treat a diff in the golden output as a failed verification, the same as a red test. Keep golden files out of the commit unless the user asks for them.
+
+Dependencies for these checks (`pytest`, `ruff`, `pester`, `PSScriptAnalyzer`, `latexmk`, `poppler`'s `pdftotext`) are assumed installed by nobody — verify with `Get-Command <tool>` / `which <tool>` first, and tell the user which are missing rather than installing silently.
