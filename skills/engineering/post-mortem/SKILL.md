@@ -1,6 +1,6 @@
 ---
 name: post-mortem
-description: Write the canonical engineering record of a fixed bug — root cause, mechanism, fix, validation, and prevention. Engineer-to-engineer, code identifiers welcome. Use after a debug session lands a fix, before closing out work. Trigger on /post-mortem, when the user says "write the post-mortem / postmortem / RCA / root cause analysis", "document this fix", or after resolving an issue with debug-mantra.
+description: Writes the canonical engineering record of a fixed bug - root cause, mechanism, fix, validation and prevention - to docs/post-mortems/. Engineer-to-engineer, code identifiers welcome. Use after a debug session lands a validated fix, before closing out the work. Triggers on /post-mortem, on "write the post-mortem / RCA / root cause analysis", "document this fix", and Thai phrasings such as "สรุปสาเหตุบั๊ก", "เขียน post-mortem", "บันทึกการแก้บั๊กไว้หน่อย", "เขียนสรุป root cause".
 ---
 
 # Post-mortem
@@ -9,13 +9,22 @@ The canonical engineering record of a bug fix. Written **after** debugging lands
 
 Code identifiers are first-class here — this is the artifact that lets someone recover the mental model fast without re-deriving the bug.
 
+**Freedom level:** low for the inputs gate and the five-section structure (template); medium for the prose inside each section.
+
+## Report language
+
+Applies to the document body and to what you tell the user. Code identifiers, paths, error strings and commands stay in their original language.
+
+1. If the user already named a language this session, or CLAUDE.md / memory records one, use it without asking.
+2. Otherwise ask once, before the first message: "จะให้รายงานเป็นภาษาอะไร — ไทย หรือ English?" (suggest Thai) and wait. If the answer is vague, use Thai. Do not ask again this session, whichever skill runs next.
+
 ---
 
 ## When to Invoke
 
 - Explicit `/post-mortem` invocation.
 - User requests: "write the post-mortem / RCA / root cause analysis", "document this fix", "write up the root cause", or "close out this bug with a writeup".
-- After a `debug-mantra` session has clearly landed and validated a fix, proactively offer: *"Would you like me to draft a post-mortem for this fix?"*
+- After a `debug-mantra` session has clearly landed and validated a fix, proactively offer (in the report language): *"Would you like me to draft a post-mortem for this fix?"*
 
 ## When NOT to Use
 
