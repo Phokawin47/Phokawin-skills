@@ -1,6 +1,6 @@
 ---
 name: debug-mantra
-description: Evidence-first debugging discipline — reproduce, trace the fail path, falsify hypotheses, log every run in a ledger, fix only the proven root cause, then verify with a regression test. Use proactively whenever debugging starts - the user says something is broken, failing, crashing, throwing, flaky or giving wrong results; asks to debug, diagnose, investigate, find the root cause, review or check their code for bugs; or pastes a stack trace, error log or failing test. Also fires on Thai phrasings such as "บั๊ก", "พัง", "error", "รันไม่ผ่าน", "ผลลัพธ์ผิด", "ทำไมมันถึง...", "ช่วยดูโค้ดหน่อย", "หาสาเหตุให้หน่อย", "แก้ error ให้". Trigger on /debug-mantra.
+description: Guides evidence-first debugging - reproduce, trace the fail path, falsify hypotheses, log every run in a ledger, fix only the proven root cause, then verify with a regression test. Use proactively whenever debugging starts - the user says something is broken, failing, crashing, throwing, flaky or giving wrong results; asks to debug, diagnose, investigate, find the root cause, review or check their code for bugs; or pastes a stack trace, error log or failing test. Also fires on Thai phrasings such as "บั๊ก", "พัง", "error", "รันไม่ผ่าน", "ผลลัพธ์ผิด", "ทำไมมันถึง...", "ช่วยดูโค้ดหน่อย", "หาสาเหตุให้หน่อย", "แก้ error ให้". Trigger on /debug-mantra.
 ---
 
 # Debug Mantra
@@ -8,6 +8,20 @@ description: Evidence-first debugging discipline — reproduce, trace the fail p
 One discipline for every debug session: no fix before a reproduction, no root cause before the disproof was tried, no "fixed" before the original failure was shown to pass.
 
 The failure mode this prevents: patching the line where the error surfaced, watching the symptom disappear, and declaring victory while the real cause is still live (a swallowed exception, a fallback value, a retry, a null check).
+
+**Freedom level:** low for the order of steps and the stop conditions (they are gates); high for how to investigate inside each step.
+
+Copy this checklist into the first reply and tick items as they are done. A failed check sends you back, never forward.
+
+```
+- [ ] 1 Repro exists (failing signal in ≤5 s)       ← none: stop, ask the user
+- [ ] 2 Fail path found (first divergence located)   ← not found: back to 1, raise repro rate or add probes
+- [ ] 3 3–5 hypotheses ranked, disproof run first    ← all dead: back to 2, widen the knobs
+- [ ] 4 Ledger consistent with the surviving cause   ← a run contradicts it: back to 3
+- [ ] 5 Root cause sentence written, confidence set
+- [ ] 6 Smallest fix + regression test (fails before, passes after)
+- [ ] 7 Verified: repro, regression and related tests pass    ← any red: back to 3
+```
 
 ## Report language
 
@@ -70,6 +84,8 @@ Change one variable per run. A new hypothesis must hold against **every** earlie
 A root cause explains every observation and passes this test: *if it were removed, would the bug stop?* State it as:
 
 > Because [condition], [component] produces [incorrect state], which flows through [path], causing [observed failure].
+
+Example: *Because `discount_code` is nullable in the DB, `load_user()` returns `None`; `calculate_discount()` assumes a string and calls `.lower()`, so the checkout request fails with `AttributeError`.*
 
 Give a confidence: CONFIRMED (an experiment directly validated the mechanism) / HIGH / MEDIUM / LOW. Never claim CONFIRMED otherwise.
 
