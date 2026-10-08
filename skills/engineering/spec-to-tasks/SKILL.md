@@ -14,6 +14,8 @@ No additional interview needed; synthesize what has already been decided. If a d
 
 **Freedom level:** low for the two templates (use them as written); medium for how the work is sliced.
 
+**Contents:** Report language · Part 1: Technical Specification · Part 2: Tracer-Bullet Tasks Checklist · Operating Instructions
+
 ## Report language
 
 Applies to the spec, the checklist and everything said to the user.
