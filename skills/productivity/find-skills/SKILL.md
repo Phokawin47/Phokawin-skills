@@ -11,6 +11,8 @@ This skill helps you discover and install skills from the open agent skills ecos
 
 **Requires:** Node.js (`npx`) and network access. Check the owner's own skills first (`npx skills add Phokawin47/Phokawin-skills --list`) before searching elsewhere.
 
+**Contents:** Report language · When to Use · What is the Skills CLI · How to Help Users Find Skills (Steps 1–6) · Common Skill Categories · Tips · When No Skills Are Found
+
 ## Report language
 
 Applies to what you tell the user. Commands, skill names and URLs stay as they are.
